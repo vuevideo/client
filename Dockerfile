@@ -21,7 +21,8 @@ COPY --from=NODE_BUILD /usr/app/client/node_modules ./node_modules
 COPY --from=NODE_BUILD /usr/app/client/package.json ./package.json
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
+ENV NUXT_PUBLIC_PROXY_URL="http://localhost:3000"
 
 EXPOSE ${PORT}
 
