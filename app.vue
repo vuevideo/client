@@ -19,6 +19,6 @@ const buttonClick = async () => {
 <template>
   <div>
     {{ data }}
-    <button @click="buttonClick">Click me</button>
+    <button @click="buttonClick">click me</button>
   </div>
 </template>
