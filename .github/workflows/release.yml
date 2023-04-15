@@ -6,7 +6,6 @@ on:
       - release/*
 jobs:
   tag_and_push:
-    if: github.event.pull_request.merged == true
     environment: release
     runs-on: ubuntu-latest
     steps:
