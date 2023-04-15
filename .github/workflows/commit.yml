@@ -3,7 +3,7 @@ name: Push docker images to Docker Hub from Feature branches.
 on:
   push:
     branches:
-      - feature/*
+      - feature/*/*
 
 jobs:
   build_and_push:
