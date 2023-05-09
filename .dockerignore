@@ -9,3 +9,5 @@ dist
 .DS_Store
 
 test_setup
+cypress
+cypress.config.js
