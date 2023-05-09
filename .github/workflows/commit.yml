@@ -19,7 +19,7 @@ jobs:
       - name: Saving Testing Firebase Keys
         run: |
           mkdir ./tests_setup/keys/
-          echo ${{ secrets.E2E_FIREBASE_KEY }} >> ./test_setup/keys/service-account.json
+          echo "${{ secrets.E2E_FIREBASE_KEY }}" >> ./test_setup/keys/service-account.json
 
       - name: Running Test Server
         run: docker compose -f ./tests_setup/server.yml up -d
