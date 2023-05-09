@@ -1,0 +1,33 @@
+version: '3'
+services:
+  vuevideo_e2e:
+    image: cypress/included
+    container_name: cypress
+    depends_on:
+      - vuevideo_client
+      - vuevideo_server
+    environment:
+      - CYPRESS_baseUrl=http://vuevideo_client:3001
+    command: npx cypress run
+    volumes:
+      - ./:/e2e
+    working_dir: /e2e
+
+  vuevideo_client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NUXT_PUBLIC_PROXY_URL=http://vuevideo_server:3000
+    ports:
+      - '3001:3001'
+    depends_on:
+      - vuevideo_server
+
+  vuevideo_server:
+    image: vuevideo/e2e-server
+    container_name: vuevideo_server
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./keys:/secrets
