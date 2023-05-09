@@ -18,7 +18,7 @@ const buttonClick = async () => {
 
 <template>
   <div>
-    {{ data }}
+    <h1 data-cy="header">{{ data }}</h1>
     <button @click="buttonClick">Click me</button>
   </div>
 </template>
