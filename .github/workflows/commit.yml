@@ -22,7 +22,9 @@ jobs:
           echo "${{ secrets.E2E_FIREBASE_KEY }}" >> ./tests_setup/keys/service-account.json
 
       - name: Running Test Server
-        run: docker compose -f ./tests_setup/server.yml up -d
+        run: |
+          docker compose -f ./tests_setup/server.yml up -d
+          docker ps -a
 
       - name: Cypress run
         uses: cypress-io/github-action@v5
