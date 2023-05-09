@@ -14,18 +14,17 @@ jobs:
 
       - name: Saving Testing Firebase Keys
         run: |
-          mkdir ./tests_setup/keys/
-          echo "${{ secrets.E2E_FIREBASE_KEY }}" >> ./tests_setup/keys/service-account.json
+          mkdir keys
+          echo "${{ secrets.E2E_FIREBASE_KEY }}" >> keys/service-account.json
 
       - name: Running E2E Tests
         run: docker compose -f ./docker-compose.test.yml up --exit-code-from vuevideo_e2e
 
       - name: Reset Firebase Test Environment
         run: |
-          cd firebase_reset
-          echo "${{ secrets.E2E_FIREBASE_KEY }}" >> service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/keys/service-account-file.json"
 
-          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/service-account-file.json"
+          cd firebase_reset
           npm i
           npm run delete:users
 
