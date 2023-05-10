@@ -6,7 +6,30 @@ on:
       - feature/*/*
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Saving Testing Firebase Keys
+        run: |
+          mkdir keys
+          echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
+
+      - name: Running E2E Tests
+        run: docker compose -f ./docker-compose.test.yml up --exit-code-from vuevideo_e2e
+
+      - name: Reset Firebase Test Environment
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/keys/service-account.json"
+
+          cd firebase_reset
+          npm i
+          npm run delete:users
+
   build_and_push:
+    needs: test
     environment: dev
     runs-on: ubuntu-latest
     steps:
