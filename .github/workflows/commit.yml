@@ -12,10 +12,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.3.3
+      - name: Cache Docker images
+        id: cache-docker
+        uses: actions/cache@v3
         with:
-          key: docker-${{ runner.os }}-${{ hashFiles('./docker-compose.test.yml') }}
+          path: ~/.images.tar.gz
+          key: docker-images-${{ runner.os }}-${{ hashFiles('./docker-compose.test.yml') }}
+
+      - name: Load Cached Docker Images.
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        working-directory: ci
+        run: ./load.sh
 
       - name: Saving Testing Firebase Keys
         run: |
@@ -30,6 +37,10 @@ jobs:
 
       - name: Reset Firebase Test Environment
         run: docker compose -f ./docker-compose.test.yml --profile poststart up
+
+      - name: Cache docker images
+        working-directory: ci
+        run: ./save.sh
 
   build_and_push:
     needs: test
