@@ -22,17 +22,14 @@ jobs:
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
 
-      - name: Prepoulating the database
+      - name: Prepopulating the database
         run: docker compose -f ./docker-compose.test.yml --profile prestart up --exit-code-from step_populate_user
 
       - name: Running E2E tests
         run: docker compose -f ./docker-compose.test.yml --profile start up --exit-code-from vuevideo_e2e
 
-      - name: Running E2E Tests
-        run: docker compose -f ./docker-compose.test.yml up --exit-code-from vuevideo_e2e
-
       - name: Reset Firebase Test Environment
-        run: docker compose -f .\docker-compose.test.yml --profile poststart up
+        run: docker compose -f ./docker-compose.test.yml --profile poststart up
 
   build_and_push:
     needs: test
