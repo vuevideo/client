@@ -1,33 +1,113 @@
-version: '3'
+version: '3.9'
+
 services:
+  step_delete_user:
+    build:
+      context: firebase_reset
+    volumes:
+      - ./keys:/secrets
+    depends_on:
+      vuevideo_e2e:
+        condition: service_completed_successfully
+    profiles:
+      - poststart
+
   vuevideo_e2e:
     image: cypress/included
     container_name: cypress
     depends_on:
-      - vuevideo_client
-      - vuevideo_server
+      vuevideo_client:
+        condition: service_healthy
     environment:
       - CYPRESS_baseUrl=http://vuevideo_client:3001
     command: npx cypress run
     volumes:
       - ./:/e2e
     working_dir: /e2e
+    networks:
+      - vuevideo_net
+    profiles:
+      - start
 
   vuevideo_client:
     build:
       context: .
       dockerfile: Dockerfile
+    healthcheck:
+      test: wget --spider http://127.0.0.1:3001/api/v1/hello
+      interval: 2s
+      retries: 10
+      start_period: 2s
+      timeout: 20s
     environment:
       - NUXT_PUBLIC_PROXY_URL=http://vuevideo_server:3000
     ports:
       - '3001:3001'
+    networks:
+      - vuevideo_net
     depends_on:
-      - vuevideo_server
+      step_populate_user:
+        condition: service_completed_successfully
+    profiles:
+      - start
+
+  step_populate_user:
+    build:
+      context: firebase_setup
+    environment:
+      - BACKEND_URL=http://vuevideo_server:3000
+    networks:
+      - step_net
+    depends_on:
+      vuevideo_server:
+        condition: service_healthy
+    profiles:
+      - prestart
 
   vuevideo_server:
     image: vuevideo/e2e-server
     container_name: vuevideo_server
+    healthcheck:
+      test: wget --spider http://127.0.0.1:3000/api/v1/hello
+      interval: 2s
+      retries: 10
+      start_period: 2s
+      timeout: 20s
+    environment:
+      - DATABASE_URL=postgres://vuevideo_admin:password@vuevideo_postgres:5432/vuevideo
     ports:
       - '3000:3000'
     volumes:
       - ./keys:/secrets
+    depends_on:
+      - vuevideo_postgres
+    networks:
+      - vuevideo_net
+      - step_net
+    profiles:
+      - prestart
+      - start
+
+  vuevideo_postgres:
+    image: postgres
+    container_name: vuevideo_postgres
+    restart: always
+    ports:
+      - '127.0.0.1:8888:5432'
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=vuevideo_admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=vuevideo
+    networks:
+      - vuevideo_net
+    profiles:
+      - prestart
+      - start
+
+networks:
+  vuevideo_net:
+    name: vuevideo_net
+
+  step_net:
+    name: step_net
