@@ -12,3 +12,4 @@ firebase_setup
 firebase_reset
 cypress
 cypress.config.js
+ci
