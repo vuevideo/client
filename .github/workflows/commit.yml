@@ -12,21 +12,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Cache Docker images
+        id: cache-docker
+        uses: actions/cache@v3
+        with:
+          path: ~/.images.tar.gz
+          key: docker-images-${{ runner.os }}-${{ hashFiles('./docker-compose.test.yml') }}
+
+      - name: Load Cached Docker Images.
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        working-directory: ci
+        run: |
+          chmod 700 load.sh
+          ./load.sh
+
       - name: Saving Testing Firebase Keys
         run: |
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
 
-      - name: Running E2E Tests
-        run: docker compose -f ./docker-compose.test.yml up --exit-code-from vuevideo_e2e
+      - name: Prepopulating the database
+        run: docker compose -f ./docker-compose.test.yml --profile prestart up --exit-code-from step_populate_user
+
+      - name: Running E2E tests
+        run: docker compose -f ./docker-compose.test.yml --profile start up --exit-code-from vuevideo_e2e
 
       - name: Reset Firebase Test Environment
-        run: |
-          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/keys/service-account.json"
+        run: docker compose -f ./docker-compose.test.yml --profile poststart up
 
-          cd firebase_reset
-          npm i
-          npm run delete:users
+      - name: Cache docker images
+        working-directory: ci
+        run: |
+          chmod 700 save.sh
+          ./save.sh
 
   build_and_push:
     needs: test
