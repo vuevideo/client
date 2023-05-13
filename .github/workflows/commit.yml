@@ -22,7 +22,9 @@ jobs:
       - name: Load Cached Docker Images.
         if: steps.cache-docker.outputs.cache-hit == 'true'
         working-directory: ci
-        run: ./load.sh
+        run: |
+          chmod 700 load.sh
+          ./load.sh
 
       - name: Saving Testing Firebase Keys
         run: |
@@ -40,7 +42,9 @@ jobs:
 
       - name: Cache docker images
         working-directory: ci
-        run: ./save.sh
+        run: |
+          chmod 700 save.sh
+          ./save.sh
 
   build_and_push:
     needs: test
