@@ -1,4 +1,4 @@
-export class CreateAccountDto {
+export class LoginAccountDto {
   public emailAddress: string = '';
   public password: string = '';
 
@@ -7,12 +7,12 @@ export class CreateAccountDto {
     this.password = password;
   }
 
-  static empty(): CreateAccountDto {
-    return new CreateAccountDto('', '');
+  static empty(): LoginAccountDto {
+    return new LoginAccountDto('', '');
   }
 
-  static fromJson(json: any): CreateAccountDto {
-    return new CreateAccountDto(json.emailAddress ?? '', json.password ?? '');
+  static fromJson(json: any): LoginAccountDto {
+    return new LoginAccountDto(json.emailAddress ?? '', json.password ?? '');
   }
 
   toJson(): {
