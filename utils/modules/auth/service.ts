@@ -1,6 +1,9 @@
 import { Credentials } from '~/utils/models/credentials.model';
 import { HttpException } from '~/utils/models/http-exception.model';
 import { CreateAccountDto } from '~/utils/modules/auth/dtos/create-account.dto';
+import { LoginAccountDto } from './dtos/login-account.dto';
+import { useFirebase } from '~/composables/useFirebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export const registerNewAccount = async (
   createAccountDto: CreateAccountDto
@@ -24,3 +27,45 @@ export const registerNewAccount = async (
   };
 };
 
+export const loginAccount = async (
+  loginAccountDto: LoginAccountDto
+): Promise<{
+  error: HttpException | null;
+  data: null;
+}> => {
+  try {
+    const { auth } = useFirebase();
+
+    await signInWithEmailAndPassword(
+      auth,
+      loginAccountDto.emailAddress,
+      loginAccountDto.password
+    );
+
+    console.log('login done');
+
+    return {
+      data: null,
+      error: null,
+    };
+  } catch (error: any) {
+    let errorString = 'Something went wrong, please try again later';
+
+    if (error.code === 'auth/user-not-found') {
+      errorString = 'This email is not registered to any account.';
+    }
+
+    if (error.code === 'auth/wrong-password') {
+      errorString = 'You have typed a wrong password, please try again.';
+    }
+
+    return {
+      data: null,
+      error: HttpException.fromJson({
+        statusCode: 400,
+        message: errorString,
+        error: 'Bad Request',
+      }),
+    };
+  }
+};
