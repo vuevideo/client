@@ -1,6 +1,6 @@
 const tCorrectUsername = 'testusername';
 const tCorrectPassword = 'testpassword';
-const tCorrectName = 'test name';
+const tCorrectName = 'testname';
 const tCorrectEmail = 'test@example.com';
 
 const tIncorrectUsername = 'test';
@@ -15,28 +15,17 @@ const tAlreadyUsedPassword = 'testtest';
 describe('/register', () => {
   beforeEach(() => {
     cy.visit('/register');
+    cy.intercept('POST', '**/auth', (req) => {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(req.continue()), 2000); // delay by 5 seconds
+      });
+    }).as('postAuth');
   });
-
-  // it('passes for proper fields added', () => {
-  //   // Arrange
-
-  //   // Act
-  //   cy.get('[data-cy="username"]').type(tCorrectUsername);
-  //   cy.get('[data-cy="email"]').type(tCorrectEmail);
-  //   cy.get('[data-cy="name"]').type(tCorrectName);
-  //   cy.get('[data-cy="password"]').type(tCorrectPassword);
-  //   cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
-
-  //   // Assert
-  //   cy.on('url:changed', (newUrl) => {
-  //     expect(newUrl).to.contain('/login');
-  //   });
-  // });
 
   it('fails for empty fields validation', () => {
     // Arrange
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
     cy.get('[data-cy="name"]').type(tCorrectName);
+    cy.get('[data-cy="email"]').type(tCorrectEmail);
     cy.get('[data-cy="password"]').type(tCorrectPassword);
     cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
 
@@ -52,9 +41,9 @@ describe('/register', () => {
 
   it('fails for incorrect fields validation', () => {
     // Arrange
+    cy.get('[data-cy="name"]').type(tCorrectName);
     cy.get('[data-cy="username"]').type(tIncorrectUsername);
     cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="name"]').type(tCorrectName);
     cy.get('[data-cy="password"]').type(tCorrectPassword);
     cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
 
@@ -70,9 +59,9 @@ describe('/register', () => {
 
   it('fails for non matching passwords', () => {
     // Arrange
-    cy.get('[data-cy="username"]').type(tIncorrectUsername);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
     cy.get('[data-cy="name"]').type(tCorrectName);
+    cy.get('[data-cy="username"]').type(tCorrectUsername);
+    cy.get('[data-cy="email"]').type(tCorrectEmail);
     cy.get('[data-cy="password"]').type(tCorrectPassword);
     cy.get('[data-cy="passwordAgain"]').type(tIncorrectPassword);
 
@@ -86,39 +75,61 @@ describe('/register', () => {
     );
   });
 
-  // it('fails for duplicate email address', () => {
-  //   // Arrange
+  it('fails for duplicate email address', () => {
+    // Arrange
+    cy.get('[data-cy="name"]').type(tCorrectName);
+    cy.get('[data-cy="username"]').type(tCorrectUsername);
+    cy.get('[data-cy="email"]').type(tAlreadyUsedEmail);
+    cy.get('[data-cy="password"]').type(tCorrectPassword);
+    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
 
-  //   // Act
-  //   cy.get('[data-cy="username"]').type(tCorrectUsername);
-  //   cy.get('[data-cy="email"]').type(tAlreadyUsedUsername);
-  //   cy.get('[data-cy="name"]').type(tCorrectName);
-  //   cy.get('[data-cy="password"]').type(tCorrectPassword);
-  //   cy.get('[data-cy="passwordAgain"]').type(tIncorrectPassword);
+    // Act
+    cy.get('[data-cy="btn"]').click();
 
-  //   // Assert
-  //   cy.get('[data-cy="errors"]').should(
-  //     'contain.text',
-  //     'Account with this email address already exists.'
-  //   );
-  // });
+    // Assert
+    cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+    cy.get('[data-cy="error"]', { timeout: 10000 }).should(
+      'contain.text',
+      'This email address is already taken.'
+    );
+  });
 
-  // it('fails for duplicate username', () => {
-  //   // Arrange
+  it('fails for duplicate username', () => {
+    // Arrange
+    cy.get('[data-cy="name"]').type(tCorrectName);
+    cy.get('[data-cy="username"]').type(tAlreadyUsedUsername);
+    cy.get('[data-cy="email"]').type(tCorrectEmail);
+    cy.get('[data-cy="password"]').type(tCorrectPassword);
+    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
 
-  //   // Act
-  //   cy.get('[data-cy="username"]').type(tAlreadyUsedUsername);
-  //   cy.get('[data-cy="email"]').type(tCorrectEmail);
-  //   cy.get('[data-cy="name"]').type(tCorrectName);
-  //   cy.get('[data-cy="password"]').type(tCorrectPassword);
-  //   cy.get('[data-cy="passwordAgain"]').type(tIncorrectPassword);
+    // Act
+    cy.get('[data-cy="btn"]').click();
 
-  //   // Assert
-  //   cy.get('[data-cy="errors"]').should(
-  //     'contain.text',
-  //     'Account with this username already exists.'
-  //   );
-  // });
+    // Assert
+    cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+    cy.get('[data-cy="error"]', { timeout: 10000 }).should(
+      'contain.text',
+      'This username is already taken.'
+    );
+  });
+
+  it('passes for proper fields added', () => {
+    // Arrange
+    cy.get('[data-cy="name"]').type(tCorrectName);
+    cy.get('[data-cy="username"]').type(tCorrectUsername);
+    cy.get('[data-cy="email"]').type(tCorrectEmail);
+    cy.get('[data-cy="password"]').type(tCorrectPassword);
+    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+
+    // Act
+    cy.get('[data-cy="btn"]').click();
+
+    // Assert
+    cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+    cy.on('url:changed', (newUrl) => {
+      expect(newUrl).to.contain('/login');
+    });
+  });
 });
 
 // describe('/login', () => {
@@ -147,7 +158,7 @@ describe('/register', () => {
 //     cy.get('[data-cy="password"]').type(tAlreadyUsedPassword);
 
 //     // Assert
-//     cy.get('[data-cy="errors"]').should(
+//     cy.get('[data-cy="error"]').should(
 //       'contain.text',
 //       'Account with this email address does not exist.'
 //     );
@@ -161,7 +172,7 @@ describe('/register', () => {
 //     cy.get('[data-cy="password"]').type(tCorrectPassword);
 
 //     // Assert
-//     cy.get('[data-cy="errors"]').should(
+//     cy.get('[data-cy="error"]').should(
 //       'contain.text',
 //       'Password is incorrect'
 //     );
