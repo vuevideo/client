@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate';
 import * as yup from 'yup';
+import { CreateAccountDto } from '~/utils/modules/auth/dtos/create-account.dto';
+import { registerNewAccount } from '~/utils/modules/auth/service';
+
+// Server States.
+const error = ref<string>('');
+const loading = ref<boolean>(false);
 
 // Validation rules integration.
 const { handleSubmit, handleReset } = useForm({
@@ -37,8 +43,20 @@ const password = useField('password');
 const passwordAgain = useField('passwordAgain');
 
 // Form Submit Action.
-const submit = handleSubmit((values) => {
-  console.log(values);
+const submit = handleSubmit(async (values) => {
+  loading.value = true;
+
+  const { data: userData, error: userError } = await registerNewAccount(
+    CreateAccountDto.fromJson(values)
+  );
+
+  loading.value = false;
+
+  if (userError?.isEmpty()) {
+    navigateTo('/login');
+  } else {
+    error.value = userError!.message;
+  }
 });
 </script>
 
@@ -47,22 +65,26 @@ const submit = handleSubmit((values) => {
     <v-sheet class="w-50">
       <form @submit.prevent="submit">
         <v-container class="d-flex flex-row ma-0 pa-0">
-          <v-text-field
-            variant="outlined"
-            class="ma-2 pa-2"
-            v-model="name.value.value"
-            :error-messages="name.errorMessage.value"
-            label="Name"
-            data-cy="name"
-          />
-          <v-text-field
-            variant="outlined"
-            class="ma-2 pa-2"
-            v-model="username.value.value"
-            :error-messages="username.errorMessage.value"
-            label="Username"
-            data-cy="username"
-          />
+          <v-container class="ma-0 pa-0">
+            <v-text-field
+              variant="outlined"
+              class="ma-2 pa-2 flex-grow-1 flex-shrink-1"
+              v-model="name.value.value"
+              :error-messages="name.errorMessage.value"
+              label="Name"
+              data-cy="name"
+            />
+          </v-container>
+          <v-container class="ma-0 pa-0">
+            <v-text-field
+              variant="outlined"
+              class="ma-2 pa-2 flex-grow-1 flex-shrink-1"
+              v-model="username.value.value"
+              :error-messages="username.errorMessage.value"
+              label="Username"
+              data-cy="username"
+            />
+          </v-container>
         </v-container>
         <v-text-field
           variant="outlined"
@@ -91,8 +113,18 @@ const submit = handleSubmit((values) => {
           data-cy="passwordAgain"
         />
         <v-sheet class="w-100 d-flex align-center justify-center">
-          <v-btn type="submit" data-cy="btn">Create New Account</v-btn>
+          <v-btn type="submit" data-cy="btn" :loading="loading"
+            >Create New Account</v-btn
+          >
         </v-sheet>
+        <v-alert
+          data-cy="error"
+          v-if="error !== ''"
+          color="error"
+          icon="$error"
+          title="Registration Error"
+          :text="error"
+        ></v-alert>
       </form>
     </v-sheet>
   </v-container>
