@@ -62,13 +62,22 @@ const submit = handleSubmit(async (values) => {
 
 <template>
   <v-container class="h-screen w-100 d-flex justify-center align-center">
-    <v-sheet class="w-50">
+    <v-sheet class="rounded elevation-24 pa-8">
+      <v-container class="text-center text-h4"
+        >Register for a new account ✨</v-container
+      >
       <form @submit.prevent="submit">
-        <v-container class="d-flex flex-row ma-0 pa-0">
+        <v-container class="d-flex flex-column flex-md-row flex-row ma-0 pa-0">
           <v-container class="ma-0 pa-0">
             <v-text-field
               variant="outlined"
-              class="ma-2 pa-2 flex-grow-1 flex-shrink-1"
+              class="
+                mx-2
+                px-2
+                my-2 my-md-0
+                py-1 py-md-0
+                flex-grow-1 flex-shrink-1
+              "
               v-model="name.value.value"
               :error-messages="name.errorMessage.value"
               label="Name"
@@ -78,7 +87,13 @@ const submit = handleSubmit(async (values) => {
           <v-container class="ma-0 pa-0">
             <v-text-field
               variant="outlined"
-              class="ma-2 pa-2 flex-grow-1 flex-shrink-1"
+              class="
+                mx-2
+                px-2
+                my-2 my-md-0
+                py-1 py-md-0
+                flex-grow-1 flex-shrink-1
+              "
               v-model="username.value.value"
               :error-messages="username.errorMessage.value"
               label="Username"
@@ -112,11 +127,11 @@ const submit = handleSubmit(async (values) => {
           type="password"
           data-cy="passwordAgain"
         />
-        <v-sheet class="w-100 d-flex align-center justify-center">
-          <v-btn type="submit" data-cy="btn" :loading="loading"
+        <v-container class="d-flex align-center justify-center">
+          <v-btn color="success" type="submit" data-cy="btn" :loading="loading"
             >Create New Account</v-btn
           >
-        </v-sheet>
+        </v-container>
         <v-alert
           data-cy="error"
           v-if="error !== ''"
