@@ -31,8 +31,7 @@ jobs:
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
 
-          echo $E2E_FIREBASE_CONFIG
-          echo $E2E_FIREBASE_CONFIG >> frontend.env
+          echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> frontend.env
 
           cat frontend.env
 
@@ -53,6 +52,7 @@ jobs:
           name: cypress-screenshots
           path: |
             **/**.png
+            frontend.env
 
       - name: Cypress Videos
         if: always()
