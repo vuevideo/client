@@ -31,7 +31,8 @@ jobs:
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
 
-          echo "${{ env.E2E_FIREBASE_CONFIG }}" >> frontend.env
+          echo $E2E_FIREBASE_CONFIG
+          echo $E2E_FIREBASE_CONFIG >> frontend.env
 
           cat frontend.env
 
