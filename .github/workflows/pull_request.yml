@@ -32,8 +32,7 @@ jobs:
         run: |
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
-
-          echo '${{ secrets.E2E_FIREBASE_CONFIG }}' >> frontend.env
+          echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> frontend.env
 
       - name: Prepopulating the database
         run: docker compose -f ./docker-compose.test.yml --profile prestart up --exit-code-from step_populate_user
