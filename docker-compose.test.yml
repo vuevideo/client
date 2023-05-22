@@ -41,6 +41,8 @@ services:
       timeout: 20s
     environment:
       - NUXT_PUBLIC_PROXY_URL=http://vuevideo_server:3000
+    env_file:
+      - ./frontend.env
     ports:
       - '3001:3001'
     networks:
@@ -65,7 +67,7 @@ services:
       - prestart
 
   vuevideo_server:
-    image: vuevideo/e2e-server
+    image: vuevideo/e2e-server:hotfix-29-30-fixes-af7c6a854ea084945396b61e2ee315a73e7cccbd
     container_name: vuevideo_server
     healthcheck:
       test: wget --spider http://127.0.0.1:3000/api/v1/hello
