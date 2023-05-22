@@ -40,9 +40,11 @@ jobs:
         run: docker compose -f ./docker-compose.test.yml --profile start up --exit-code-from vuevideo_e2e
 
       - name: Reset Firebase Test Environment
+        if: always()
         run: docker compose -f ./docker-compose.test.yml --profile poststart up
 
       - name: Cypress Screenshots
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots
@@ -50,6 +52,7 @@ jobs:
             **/**.png
 
       - name: Cypress Videos
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: cypress-videos
