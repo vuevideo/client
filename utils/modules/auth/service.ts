@@ -42,11 +42,9 @@ export const loginAccount = async (
       loginAccountDto.password
     );
 
-    console.log('login done');
-
     return {
       data: null,
-      error: null,
+      error: HttpException.empty(),
     };
   } catch (error: any) {
     let errorString = 'Something went wrong, please try again later';

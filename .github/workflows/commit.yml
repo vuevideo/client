@@ -31,6 +31,8 @@ jobs:
           mkdir keys
           echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
 
+          echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> frontend.env
+
       - name: Prepopulating the database
         run: docker compose -f ./docker-compose.test.yml --profile prestart up --exit-code-from step_populate_user
 
@@ -38,7 +40,24 @@ jobs:
         run: docker compose -f ./docker-compose.test.yml --profile start up --exit-code-from vuevideo_e2e
 
       - name: Reset Firebase Test Environment
+        if: always()
         run: docker compose -f ./docker-compose.test.yml --profile poststart up
+
+      - name: Cypress Screenshots
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: |
+            **/**.png
+
+      - name: Cypress Videos
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-videos
+          path: |
+            **/**.mp4
 
       # - name: Cache docker images
       #   working-directory: ci
