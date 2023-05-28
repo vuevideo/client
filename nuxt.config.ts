@@ -8,6 +8,8 @@ export default defineNuxtConfig({
       storageBucket: process.env.NUXT_PUBLIC_STORAGE_BUCKET,
       messagingSenderId: process.env.NUXT_PUBLIC_MESSAGING_SENDER_ID,
       appId: process.env.NUXT_PUBLIC_APP_ID,
+      proxyUrl:
+        process.env.NUXT_PUBLIC_PUBLIC_PROXY_URL || 'http://localhost:3000/',
     },
   },
   css: ['vuetify/styles', '@mdi/font/css/materialdesignicons.css'],
