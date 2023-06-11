@@ -2,8 +2,7 @@ version: '3.9'
 
 services:
   step_delete_user:
-    build:
-      context: firebase_reset
+    image: vuevideo/firebase_reset:latest
     volumes:
       - ./keys:/secrets
     depends_on:
@@ -54,8 +53,7 @@ services:
       - start
 
   step_populate_user:
-    build:
-      context: firebase_setup
+    image: vuevideo/firebase_setup:latest
     environment:
       - BACKEND_URL=http://vuevideo_server:3000
     networks:
