@@ -8,6 +8,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updateEmail,
+  updatePassword,
 } from 'firebase/auth';
 import { useFirebase } from '~/composables/useFirebase';
 
@@ -84,7 +85,7 @@ export const updateEmailAddress = async (
  * @param updateUserDto DTO Implementation for updating email address.
  * @returns Updated Credentials or Error Details.
  */
-const updateEmailAddressOnFirebase = async (
+export const updateEmailAddressOnFirebase = async (
   password: string,
   updateEmailDto: UpdateEmailDto
 ): Promise<{
@@ -114,6 +115,58 @@ const updateEmailAddressOnFirebase = async (
 
     if (error.code === 'auth/user-not-found') {
       errorString = 'This email is not registered to any account.';
+    }
+
+    if (error.code === 'auth/wrong-password') {
+      errorString = 'You have typed a wrong password, please try again.';
+    }
+
+    return {
+      data: null,
+      error: HttpException.fromJson({
+        statusCode: 400,
+        message: errorString,
+        error: 'Bad Request',
+      }),
+    };
+  }
+};
+
+/**
+ * Service Implementation for updating password on firebase.
+ * @param oldPassword Old Password for the account.
+ * @param newPassword New Password for the account.
+ * @returns Success or Error Details.
+ */
+export const updateUserPassword = async (
+  oldPassword: string,
+  newPassword: string
+): Promise<{
+  error: HttpException | null;
+  data: null;
+}> => {
+  try {
+    // Preparing credentials for reauthentication.
+    const user = auth.currentUser;
+    const credentials = EmailAuthProvider.credential(user!.email!, oldPassword);
+
+    // Reauthenticating with firebase.
+    await reauthenticateWithCredential(user!, credentials);
+
+    // Updating email address on firebase.
+    await updatePassword(user!, newPassword);
+
+    // Return success
+    return {
+      data: null,
+      error: HttpException.empty(),
+    };
+  } catch (error: any) {
+    // Handle Firebase errors.
+    let errorString = 'Something went wrong, please try again later';
+
+    if (error.code === 'auth/weak-password') {
+      errorString = 'The new password is a weak password.';
     }
 
     if (error.code === 'auth/wrong-password') {
