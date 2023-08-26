@@ -11,8 +11,43 @@ import {
   updatePassword,
 } from 'firebase/auth';
 import { useFirebase } from '~/composables/useFirebase';
+import { UpdateProfileImageDto } from './dtos/update-profile-image.dto';
+import { ProfileImage } from '~/utils/models/profile-image.model';
 
 const { auth } = useFirebase();
+
+/**
+ * Service Implementation for updating user profile image on server.
+ * @param updateprofileImageDto DTO Implementation for updating profile image.
+ * @returns Updated User Profile Image or Error Details.
+ */
+export const updateProfileImage = async (
+  updateprofileImageDto: UpdateProfileImageDto
+): Promise<{
+  error: HttpException | null;
+  data: ProfileImage | null;
+}> => {
+  // Generating a Firebase JWT token.
+  const firebaseJwt = getIdToken(auth.currentUser!);
+
+  // Send PUT request to update user details on server.
+  const { data, error } = await useFetch('/api/v1/user/profile-image', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${firebaseJwt}`,
+    },
+    body: JSON.stringify(updateprofileImageDto.toJson()),
+  });
+
+  // Return response data or error details.
+  return {
+    data: data.value ? ProfileImage.fromJson(data.value) : ProfileImage.empty(),
+    error: error.value
+      ? HttpException.fromJson(error.value!.data)
+      : HttpException.empty(),
+  };
+};
 
 /**
  * Service Implementation for updating user details on server.
@@ -49,7 +84,7 @@ export const updateUser = async (
 
 /**
  * Service Implementation for updating email address on server.
- * @param updateUserDto DTO Implementation for updating email address.
+ * @param updateEmailDto DTO Implementation for updating email address.
  * @returns Updated Credentials or Error Details.
  */
 export const updateEmailAddress = async (
@@ -82,7 +117,8 @@ export const updateEmailAddress = async (
 
 /**
  * Service Implementation for updating email address on server and firebase.
- * @param updateUserDto DTO Implementation for updating email address.
+ * @param password User Password.
+ * @param updateEmailDto DTO Implementation for updating email address.
  * @returns Updated Credentials or Error Details.
  */
 export const updateEmailAddressOnFirebase = async (
