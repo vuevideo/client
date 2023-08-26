@@ -9,6 +9,7 @@ import {
   reauthenticateWithCredential,
   updateEmail,
   updatePassword,
+  deleteUser,
 } from 'firebase/auth';
 import { useFirebase } from '~/composables/useFirebase';
 import { UpdateProfileImageDto } from './dtos/update-profile-image.dto';
@@ -220,3 +221,83 @@ export const updateUserPassword = async (
   }
 };
 
+/**
+ * Service Implementation for delete user account.
+ * @param password User Password.
+ * @returns Success or Error Details.
+ */
+export const deleteAccount = async (
+  password: string
+): Promise<{
+  error: HttpException | null;
+  data: null;
+}> => {
+  try {
+    // Preparing credentials for reauthentication.
+    const user = auth.currentUser;
+    const credentials = EmailAuthProvider.credential(user!.email!, password);
+
+    // Reauthenticating with firebase.
+    await reauthenticateWithCredential(user!, credentials);
+
+    // Deleting account on server.
+    const { error } = await deleteAccountOnServer();
+
+    // Deleting account on firebase.
+    if (error === null) await deleteUser(user!);
+
+    return {
+      data: null,
+      error: error,
+    };
+  } catch (error: any) {
+    // Handle Firebase errors.
+    let errorString = 'Something went wrong, please try again later';
+
+    if (error.code === 'auth/user-not-found') {
+      errorString = 'This email is not registered to any account.';
+    }
+
+    if (error.code === 'auth/wrong-password') {
+      errorString = 'You have typed a wrong password, please try again.';
+    }
+
+    return {
+      data: null,
+      error: HttpException.fromJson({
+        statusCode: 400,
+        message: errorString,
+        error: 'Bad Request',
+      }),
+    };
+  }
+};
+
+/**
+ * Service Implementation for deleting user account on server.
+ * @returns Success or Error Details.
+ */
+const deleteAccountOnServer = async (): Promise<{
+  error: HttpException | null;
+  data: null;
+}> => {
+  // Generating a Firebase JWT token.
+  const firebaseJwt = getIdToken(auth.currentUser!);
+
+  // Send DELETE request to delete user account on server.
+  const { error } = await useFetch('/api/v1/user', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${firebaseJwt}`,
+    },
+  });
+
+  // Return response data or error details.
+  return {
+    data: null,
+    error: error.value
+      ? HttpException.fromJson(error.value!.data)
+      : HttpException.empty(),
+  };
+};
