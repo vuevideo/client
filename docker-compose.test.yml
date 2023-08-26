@@ -5,9 +5,9 @@ services:
     image: vuevideo/firebase_reset:latest
     volumes:
       - ./keys:/secrets
-    depends_on:
-      vuevideo_e2e:
-        condition: service_completed_successfully
+    # depends_on:
+    #   vuevideo_e2e:
+    #     condition: service_completed_successfully
     profiles:
       - poststart
 
@@ -46,13 +46,14 @@ services:
       - '3001:3001'
     networks:
       - vuevideo_net
-    depends_on:
-      step_populate_user:
-        condition: service_completed_successfully
+    # depends_on:
+    #   step_populate_user:
+    #     condition: service_completed_successfully
     profiles:
       - start
 
   step_populate_user:
+    container_name: step_populate_user
     image: vuevideo/firebase_setup:latest
     environment:
       - BACKEND_URL=http://vuevideo_server:3000
@@ -65,7 +66,7 @@ services:
       - prestart
 
   vuevideo_server:
-    image: vuevideo/e2e-server:hotfix-29-30-fixes-af7c6a854ea084945396b61e2ee315a73e7cccbd
+    image: vuevideo/e2e-server:latest
     container_name: vuevideo_server
     healthcheck:
       test: wget --spider http://127.0.0.1:3000/api/v1/hello
