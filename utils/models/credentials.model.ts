@@ -30,7 +30,7 @@ export class Credentials {
 
     return new Credentials(
       json.id ?? '',
-      json.id ?? '',
+      json.emailAddress ?? '',
       json.createdAt ? new Date(json.createdAt) : new Date(),
       json.updatedAt ? new Date(json.updatedAt) : new Date(),
       account
@@ -53,4 +53,3 @@ export class Credentials {
     };
   }
 }
-
