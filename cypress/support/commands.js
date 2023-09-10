@@ -24,3 +24,22 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+Cypress.Commands.add('fillForm', (formJson) => {
+  for (const [dataCy, value] of Object.entries(formJson)) {
+    cy.get(dataCy).type(value);
+  }
+});
+
+Cypress.Commands.add('login', (email, password) => {
+  cy.visit('/login');
+
+  cy.get('[data-cy="email"]').type(email);
+  cy.get('[data-cy="password"]').type(password);
+  cy.get('[data-cy="btn"]').click();
+});
+
+Cypress.Commands.add('clearForm', (fields) => {
+  for (const field of fields) {
+    cy.get(field).clear();
+  }
+});

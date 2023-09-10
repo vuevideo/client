@@ -12,7 +12,7 @@ services:
       - poststart
 
   vuevideo_e2e:
-    image: cypress/included
+    image: vuevideo/cypress:latest
     container_name: cypress
     depends_on:
       vuevideo_client:

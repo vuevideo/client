@@ -15,7 +15,31 @@ import { useFirebase } from '~/composables/useFirebase';
 import { UpdateProfileImageDto } from './dtos/update-profile-image.dto';
 import { ProfileImage } from '~/utils/models/profile-image.model';
 
-const { auth } = useFirebase();
+export const getUser = async (): Promise<{
+  error: HttpException | null;
+  data: Credentials | null;
+}> => {
+  const { auth } = useFirebase();
+  // Generating a Firebase JWT token.
+  const firebaseJwt = await getIdToken(auth!.currentUser!);
+
+  // Send GET request to get user details from server.
+  const { data, error } = await useFetch('/api/v1/user', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${firebaseJwt}`,
+    },
+  });
+
+  // Return response data or error details.
+  return {
+    data: data.value ? Credentials.fromJson(data.value) : Credentials.empty(),
+    error: error.value
+      ? HttpException.fromJson(error.value!.data)
+      : HttpException.empty(),
+  };
+};
 
 /**
  * Service Implementation for updating user profile image on server.
@@ -28,8 +52,11 @@ export const updateProfileImage = async (
   error: HttpException | null;
   data: ProfileImage | null;
 }> => {
+  // Getting firebase auth instance.
+  const { auth } = useFirebase();
+
   // Generating a Firebase JWT token.
-  const firebaseJwt = getIdToken(auth.currentUser!);
+  const firebaseJwt = await getIdToken(auth.currentUser!);
 
   // Send PUT request to update user details on server.
   const { data, error } = await useFetch('/api/v1/user/profile-image', {
@@ -61,8 +88,11 @@ export const updateUser = async (
   error: HttpException | null;
   data: Account | null;
 }> => {
+  // Getting firebase auth instance.
+  const { auth } = useFirebase();
+
   // Generating a Firebase JWT token.
-  const firebaseJwt = getIdToken(auth.currentUser!);
+  const firebaseJwt = await getIdToken(auth.currentUser!);
 
   // Send PUT request to update user details on server.
   const { data, error } = await useFetch('/api/v1/user', {
@@ -94,8 +124,11 @@ export const updateEmailAddress = async (
   error: HttpException | null;
   data: Credentials | null;
 }> => {
+  // Getting firebase auth instance.
+  const { auth } = useFirebase();
+
   // Generating a Firebase JWT token.
-  const firebaseJwt = getIdToken(auth.currentUser!);
+  const firebaseJwt = await getIdToken(auth.currentUser!);
 
   // Send PUT request to update user details on server.
   const { data, error } = await useFetch('/api/v1/user/email', {
@@ -130,6 +163,9 @@ export const updateEmailAddressOnFirebase = async (
   data: Credentials | null;
 }> => {
   try {
+    // Getting firebase auth instance.
+    const { auth } = useFirebase();
+
     // Preparing credentials for reauthentication.
     const user = auth.currentUser;
     const credentials = EmailAuthProvider.credential(user!.email!, password);
@@ -183,6 +219,9 @@ export const updateUserPassword = async (
   data: null;
 }> => {
   try {
+    // Getting firebase auth instance.
+    const { auth } = useFirebase();
+
     // Preparing credentials for reauthentication.
     const user = auth.currentUser;
     const credentials = EmailAuthProvider.credential(user!.email!, oldPassword);
@@ -233,6 +272,9 @@ export const deleteAccount = async (
   data: null;
 }> => {
   try {
+    // Getting firebase auth instance.
+    const { auth } = useFirebase();
+
     // Preparing credentials for reauthentication.
     const user = auth.currentUser;
     const credentials = EmailAuthProvider.credential(user!.email!, password);
@@ -281,8 +323,11 @@ const deleteAccountOnServer = async (): Promise<{
   error: HttpException | null;
   data: null;
 }> => {
+  // Getting firebase auth instance.
+  const { auth } = useFirebase();
+
   // Generating a Firebase JWT token.
-  const firebaseJwt = getIdToken(auth.currentUser!);
+  const firebaseJwt = await getIdToken(auth.currentUser!);
 
   // Send DELETE request to delete user account on server.
   const { error } = await useFetch('/api/v1/user', {
