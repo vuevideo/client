@@ -24,10 +24,12 @@ describe('/register', () => {
 
   it('fails for empty fields validation', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="email"]': tCorrectEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tCorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
@@ -41,11 +43,13 @@ describe('/register', () => {
 
   it('fails for incorrect fields validation', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="username"]').type(tIncorrectUsername);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="username"]': tIncorrectUsername,
+      '[data-cy="email"]': tCorrectEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tCorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
@@ -59,11 +63,13 @@ describe('/register', () => {
 
   it('fails for non matching passwords', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="username"]').type(tCorrectUsername);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tIncorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="username"]': tCorrectUsername,
+      '[data-cy="email"]': tCorrectEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tIncorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
@@ -77,11 +83,13 @@ describe('/register', () => {
 
   it('fails for duplicate email address', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="username"]').type(tCorrectUsername);
-    cy.get('[data-cy="email"]').type(tAlreadyUsedEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="username"]': tCorrectUsername,
+      '[data-cy="email"]': tAlreadyUsedEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tCorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
@@ -96,11 +104,13 @@ describe('/register', () => {
 
   it('fails for duplicate username', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="username"]').type(tAlreadyUsedUsername);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="username"]': tAlreadyUsedUsername,
+      '[data-cy="email"]': tCorrectEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tCorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
@@ -115,11 +125,13 @@ describe('/register', () => {
 
   it('passes for proper fields added', () => {
     // Arrange
-    cy.get('[data-cy="name"]').type(tCorrectName);
-    cy.get('[data-cy="username"]').type(tCorrectUsername);
-    cy.get('[data-cy="email"]').type(tCorrectEmail);
-    cy.get('[data-cy="password"]').type(tCorrectPassword);
-    cy.get('[data-cy="passwordAgain"]').type(tCorrectPassword);
+    cy.fillForm({
+      '[data-cy="name"]': tCorrectName,
+      '[data-cy="username"]': tCorrectUsername,
+      '[data-cy="email"]': tCorrectEmail,
+      '[data-cy="password"]': tCorrectPassword,
+      '[data-cy="passwordAgain"]': tCorrectPassword,
+    });
 
     // Act
     cy.get('[data-cy="btn"]').click();
