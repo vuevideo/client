@@ -25,6 +25,8 @@ const tab = ref<number>(1);
     <v-window-item :key="1" :value="1">
       <update-profile />
     </v-window-item>
+    <v-window-item :key="2" :value="2">
+      <update-email />
+    </v-window-item>
   </v-window>
 </template>
-

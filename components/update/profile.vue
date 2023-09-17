@@ -10,6 +10,13 @@ const uploadBtnRef = ref();
 // Logged in user reference.
 const { user, set } = useUser();
 
+// User initials
+const initials = computed(() => {
+  const regex = new RegExp(/\b\w/g);
+
+  return user.value?.account.name.match(regex)?.join('').toUpperCase();
+});
+
 // Server States.
 const error = ref<string>('');
 const loading = ref<boolean>(false);
@@ -79,7 +86,15 @@ const onFileChanged = ($event: Event) => {
         >Update Account Profile ✨</v-container
       >
       <v-container class="d-flex flex-column justify-center align-center">
-        <v-avatar :image="user?.account.image.imageLink" size="40%" />
+        <v-avatar
+          v-if="user?.account.image.imageLink != ''"
+          :image="user?.account.image.imageLink"
+          size="40%"
+        />
+
+        <v-avatar v-if="user?.account.image.imageLink == ''" size="40%">
+          <span class="text-h5">{{ initials }}</span></v-avatar
+        >
         <v-file-input
           ref="uploadBtnRef"
           label="File input"
@@ -149,4 +164,3 @@ const onFileChanged = ($event: Event) => {
     </v-sheet>
   </v-container>
 </template>
-
