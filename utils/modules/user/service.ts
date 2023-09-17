@@ -19,7 +19,9 @@ export const getUser = async (): Promise<{
   error: HttpException | null;
   data: Credentials | null;
 }> => {
+  // Getting firebase auth instance.
   const { auth } = useFirebase();
+
   // Generating a Firebase JWT token.
   const firebaseJwt = await getIdToken(auth!.currentUser!);
 

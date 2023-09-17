@@ -5,6 +5,10 @@ on:
     branches:
       - feature/*/*
 
+concurrency:
+  cancel-in-progress: true
+  group: client-test-build
+
 jobs:
   test:
     runs-on: ubuntu-latest
