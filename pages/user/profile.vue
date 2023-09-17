@@ -28,5 +28,8 @@ const tab = ref<number>(1);
     <v-window-item :key="2" :value="2">
       <update-email />
     </v-window-item>
+    <v-window-item :key="3" :value="3">
+      <update-password />
+    </v-window-item>
   </v-window>
 </template>

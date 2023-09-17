@@ -11,10 +11,13 @@ const tIncorrectUsername = 'test';
 const tIncorrectAlreadyUsedUsername = 'alreadyUsedtest';
 const tIncorrectName = 'test';
 const tIncorrectEmail = 'test@example@com';
+const tIncorrectPassword = 'test';
 
 const tAlreadyUsedUsername = 'alreadyUsed';
 const tAlreadyUsedEmail = 'already+test@used.com';
 const tAlreadyUsedPassword = 'testtest';
+
+const tNewPassword = 'test123';
 
 describe('/user/profile', () => {
   beforeEach(() => {
@@ -206,6 +209,112 @@ describe('/user/profile', () => {
         'contain.text',
         'Email Address update was a success!'
       );
+
+      // Cleanup
+      cy.clearForm(['[data-cy="email"]', '[data-cy="password"]']);
+      cy.fillForm({
+        '[data-cy="email"]': tCorrectEmail1,
+        '[data-cy="password"]': loginPassword,
+      });
+      cy.get('[data-cy="submit-email-btn"]').click();
+      cy.wait(3000);
+    });
+  });
+
+  describe('Update Password tab', () => {
+    beforeEach(() => {
+      cy.visit('/user/profile', {
+        timeout: 10000,
+      });
+
+      cy.wait(3000);
+
+      cy.get('[data-cy="update-password"]').click();
+    });
+
+    it('fails for empty fields validation', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="old-password"]': loginPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="submit-password-btn"]').click();
+
+      // Assert
+      cy.get('[data-cy="new-password"]').should(
+        'contain.text',
+        'Password is required.'
+      );
+    });
+
+    it('fails for incorrect fields validation', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="old-password"]': loginPassword,
+        '[data-cy="new-password"]': tIncorrectPassword,
+        '[data-cy="new-password-again"]': tIncorrectPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="submit-password-btn"]').click();
+
+      // Assert
+      cy.get('[data-cy="new-password"]').should(
+        'contain.text',
+        'New Password must be atleast of 5 characters.'
+      );
+    });
+
+    it('fails for non matching passwords', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="old-password"]': loginPassword,
+        '[data-cy="new-password"]': loginPassword,
+        '[data-cy="new-password-again"]': tNewPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="submit-password-btn"]').click();
+
+      // Assert
+      cy.get('[data-cy="new-password-again"]', { timeout: 10000 }).should(
+        'contain.text',
+        'Passwords do not match.'
+      );
+    });
+
+    it('passes for proper fields added for the same email', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="old-password"]': loginPassword,
+        '[data-cy="new-password"]': tNewPassword,
+        '[data-cy="new-password-again"]': tNewPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="submit-password-btn"]').click();
+
+      // Assert
+      cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="success"]', { timeout: 10000 }).should(
+        'contain.text',
+        'Password update was a success!'
+      );
+
+      // Cleanup
+      cy.clearForm([
+        '[data-cy="old-password"]',
+        '[data-cy="new-password"]',
+        '[data-cy="new-password-again"]',
+      ]);
+      cy.fillForm({
+        '[data-cy="old-password"]': tNewPassword,
+        '[data-cy="new-password"]': loginPassword,
+        '[data-cy="new-password-again"]': loginPassword,
+      });
+      cy.get('[data-cy="submit-password-btn"]').click();
+      cy.wait(3000);
     });
   });
 });
