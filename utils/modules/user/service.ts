@@ -14,6 +14,8 @@ import {
 import { useFirebase } from '~/composables/useFirebase';
 import { UpdateProfileImageDto } from './dtos/update-profile-image.dto';
 import { ProfileImage } from '~/utils/models/profile-image.model';
+import { v4 as uuidv4 } from 'uuid';
+import { ref as fRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export const getUser = async (): Promise<{
   error: HttpException | null;
@@ -41,6 +43,41 @@ export const getUser = async (): Promise<{
       ? HttpException.fromJson(error.value!.data)
       : HttpException.empty(),
   };
+};
+
+/**
+ * Upload Profile Images to Firebase and retrieve URLs
+ * @param file Image File
+ * @returns Updated User Profile Image or Error Details.
+ */
+export const uploadProfileImage = async (
+  file: File | Blob | ArrayBuffer | Uint8Array
+): Promise<{
+  error: HttpException | null;
+  data: ProfileImage | null;
+}> => {
+  // Generate UUID for the image.
+  const uuid = uuidv4();
+
+  // Getting storage reference from firebase composable
+  const { storage: firebaseStorage } = useFirebase();
+
+  // Getting object storage reference for upload.
+  const profileImageStorage = fRef(
+    firebaseStorage,
+    `/profile-pictures/${uuid}.jpg`
+  );
+
+  // Uploading image.
+  await uploadBytes(profileImageStorage, file);
+
+  // Getting URI for the image.
+  const publicUrl = await getDownloadURL(profileImageStorage);
+
+  // Saving Image details on the server.
+  return await updateProfileImage(
+    UpdateProfileImageDto.fromJson({ imageLink: publicUrl, storageUuid: uuid })
+  );
 };
 
 /**

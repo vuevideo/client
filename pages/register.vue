@@ -71,13 +71,7 @@ const submit = handleSubmit(async (values) => {
           <v-container class="ma-0 pa-0">
             <v-text-field
               variant="outlined"
-              class="
-                mx-2
-                px-2
-                my-2 my-md-0
-                py-1 py-md-0
-                flex-grow-1 flex-shrink-1
-              "
+              class="mx-2 px-2 my-2 my-md-0 py-1 py-md-0 flex-grow-1 flex-shrink-1"
               v-model="name.value.value"
               :error-messages="name.errorMessage.value"
               label="Name"
@@ -87,13 +81,7 @@ const submit = handleSubmit(async (values) => {
           <v-container class="ma-0 pa-0">
             <v-text-field
               variant="outlined"
-              class="
-                mx-2
-                px-2
-                my-2 my-md-0
-                py-1 py-md-0
-                flex-grow-1 flex-shrink-1
-              "
+              class="mx-2 px-2 my-2 my-md-0 py-1 py-md-0 flex-grow-1 flex-shrink-1"
               v-model="username.value.value"
               :error-messages="username.errorMessage.value"
               label="Username"
@@ -133,6 +121,7 @@ const submit = handleSubmit(async (values) => {
           >
         </v-container>
         <v-alert
+          closable
           data-cy="error"
           v-if="error !== ''"
           color="error"
@@ -144,4 +133,3 @@ const submit = handleSubmit(async (values) => {
     </v-sheet>
   </v-container>
 </template>
-
