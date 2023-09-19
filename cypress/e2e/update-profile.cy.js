@@ -28,6 +28,12 @@ describe('/user/profile', () => {
         setTimeout(() => resolve(req.continue()), 2000); // delay by 2 seconds
       });
     }).as('postUser');
+
+    cy.intercept('DELETE', '**/user/**', (req) => {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(req.continue()), 2000); // delay by 2 seconds
+      });
+    }).as('deleteUser');
   });
 
   describe('Update Profile tab', () => {
@@ -330,6 +336,78 @@ describe('/user/profile', () => {
       });
       cy.get('[data-cy="submit-password-btn"]').click();
       cy.wait(3000);
+    });
+  });
+
+  describe('Delete Account tab', () => {
+    beforeEach(() => {
+      cy.visit('/user/profile', {
+        timeout: 10000,
+      });
+
+      cy.wait(3000);
+
+      cy.get('[data-cy="delete-account"]').click();
+    });
+
+    after(() => {
+      cy.request({
+        method: 'POST',
+        url: '/api/v1/auth',
+        body: {
+          emailAddress: 'already@used.com',
+          username: 'alreadyUsed',
+          password: 'testtest',
+          name: 'testtest',
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+    it('fails for empty fields validation', () => {
+      // Act
+      cy.get('[data-cy="delete-btn"]').click();
+
+      // Assert
+      cy.get('[data-cy="password"]').should(
+        'contain.text',
+        'Password is required.'
+      );
+    });
+
+    it('fails for incorrect fields validation', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="password"]': tIncorrectPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="delete-btn"]').click();
+
+      // Assert
+      cy.get('[data-cy="password"]').should(
+        'contain.text',
+        'Password must be atleast of 5 characters.'
+      );
+    });
+
+    it('passes for proper fields added', () => {
+      // Arrange
+      cy.fillForm({
+        '[data-cy="password"]': loginPassword,
+      });
+
+      // Act
+      cy.get('[data-cy="delete-btn"]').click();
+
+      // Assert
+      cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="success"]', { timeout: 10000 }).should(
+        'contain.text',
+        'Your account has been deleted!'
+      );
     });
   });
 });
