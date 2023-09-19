@@ -14,7 +14,7 @@ const tab = ref<number>(1);
     <v-container class="text-center text-h4 my-12"
       >Update Your Account Details ✨</v-container
     >
-    <v-tabs v-model="tab" color="deep-purple-accent-4" align-tabs="center">
+    <v-tabs v-model="tab" align-tabs="center">
       <v-tab :value="1" data-cy="update-profile">Update Account Profile</v-tab>
       <v-tab :value="2" data-cy="update-email">Update Email Address</v-tab>
       <v-tab :value="3" data-cy="update-password">Update Password</v-tab>
