@@ -15,7 +15,12 @@ import { useFirebase } from '~/composables/useFirebase';
 import { UpdateProfileImageDto } from './dtos/update-profile-image.dto';
 import { ProfileImage } from '~/utils/models/profile-image.model';
 import { v4 as uuidv4 } from 'uuid';
-import { ref as fRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {
+  ref as fRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 
 export const getUser = async (): Promise<{
   error: HttpException | null;
@@ -56,7 +61,11 @@ export const uploadProfileImage = async (
   error: HttpException | null;
   data: ProfileImage | null;
 }> => {
-  // Generate UUID for the image.
+  // Fetching existing UUID to delete later.
+  const { user } = useUser();
+  const existingUuid = user.value?.account.image.storageUuid;
+
+  // Generating UUID for the image.
   const uuid = uuidv4();
 
   // Getting storage reference from firebase composable
@@ -75,9 +84,17 @@ export const uploadProfileImage = async (
   const publicUrl = await getDownloadURL(profileImageStorage);
 
   // Saving Image details on the server.
-  return await updateProfileImage(
-    UpdateProfileImageDto.fromJson({ imageLink: publicUrl, storageUuid: uuid })
+  const response = await updateProfileImage(
+    UpdateProfileImageDto.fromJson({
+      imageLink: publicUrl,
+      storageUuid: uuid,
+    })
   );
+
+  // Deleting existing profile image from storage if it exists.
+  if (existingUuid != '') await deleteProfileImage(existingUuid);
+
+  return response;
 };
 
 /**
@@ -311,6 +328,9 @@ export const deleteAccount = async (
   data: null;
 }> => {
   try {
+    // Deleting profile image from storage.
+    await deleteProfileImage();
+
     // Getting firebase auth instance.
     const { auth } = useFirebase();
 
@@ -325,7 +345,7 @@ export const deleteAccount = async (
     const { error } = await deleteAccountOnServer();
 
     // Deleting account on firebase.
-    if (error === null) await deleteUser(user!);
+    if (error == null || error?.isEmpty()) await deleteUser(user!);
 
     return {
       data: null,
@@ -384,4 +404,50 @@ const deleteAccountOnServer = async (): Promise<{
       ? HttpException.fromJson(error.value!.data)
       : HttpException.empty(),
   };
+};
+
+/**
+ * Service implementation to delete profile image.
+ * @param uuid Profile Image UUID
+ */
+const deleteProfileImage = async (uuid: string = '') => {
+  // CASE 1: Deleting current profile picture.
+  if (uuid == '') {
+    // Fetching user details
+    const { user } = useUser();
+
+    // Check if profile image already exists.
+    const isImagePresent = user.value?.account.image.storageUuid != '';
+
+    if (isImagePresent) {
+      // Fetch existing UUID.
+      uuid = user.value?.account.image.storageUuid!;
+
+      // Getting storage reference from firebase composable
+      const { storage: firebaseStorage } = useFirebase();
+
+      // Getting object storage reference for deletion.
+      const profileImageStorage = fRef(
+        firebaseStorage,
+        `/profile-pictures/${uuid}.jpg`
+      );
+
+      // Deleting image.
+      await deleteObject(profileImageStorage);
+    }
+  }
+  // CASE 2: Deleting a profile picture pointer.
+  else {
+    // Getting storage reference from firebase composable
+    const { storage: firebaseStorage } = useFirebase();
+
+    // Getting object storage reference for deletion.
+    const profileImageStorage = fRef(
+      firebaseStorage,
+      `/profile-pictures/${uuid}.jpg`
+    );
+
+    // Deleting image.
+    await deleteObject(profileImageStorage);
+  }
 };
