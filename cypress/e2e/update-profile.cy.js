@@ -351,6 +351,7 @@ describe('/user/profile', () => {
     });
 
     after(() => {
+      cy.wait(5000);
       cy.request({
         method: 'POST',
         url: '/api/v1/auth',
