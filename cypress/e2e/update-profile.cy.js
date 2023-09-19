@@ -23,7 +23,7 @@ describe('/user/profile', () => {
   beforeEach(() => {
     cy.login(loginEmail, loginPassword);
     cy.wait(3000);
-    cy.intercept('POST', '**/user', (req) => {
+    cy.intercept('POST', '**/user/**', (req) => {
       return new Promise((resolve) => {
         setTimeout(() => resolve(req.continue()), 2000); // delay by 2 seconds
       });
@@ -106,6 +106,21 @@ describe('/user/profile', () => {
       // Assert
       cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
       cy.get('[data-cy="success"]', { timeout: 10000 }).should(
+        'contain.text',
+        'Profile update was a success!'
+      );
+    });
+
+    it('uploads new profile picture', () => {
+      // Arrange
+      cy.get('[data-cy="img-upload"]').invoke('removeAttr', 'class');
+
+      // Act
+      cy.get('[data-cy="img-upload"]').selectFile('cypress/data/image.jpg');
+
+      // Assert
+      cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
+      cy.get('[data-cy="success"]', { timeout: 20000 }).should(
         'contain.text',
         'Profile update was a success!'
       );
