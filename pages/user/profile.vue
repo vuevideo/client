@@ -31,7 +31,7 @@ const tab = ref<number>(1);
     <v-window-item :key="3" :value="3">
       <update-password />
     </v-window-item>
-    <v-window-item :key="4" :value="5">
+    <v-window-item :key="4" :value="4">
       <delete-account />
     </v-window-item>
   </v-window>

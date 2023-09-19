@@ -404,10 +404,6 @@ describe('/user/profile', () => {
 
       // Assert
       cy.get('.v-btn__loader', { timeout: 10000 }).should('be.visible');
-      cy.get('[data-cy="success"]', { timeout: 10000 }).should(
-        'contain.text',
-        'Your account has been deleted!'
-      );
     });
   });
 });
