@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate';
-import { updateUser, getUser } from '~/utils/modules/user/service';
+import {
+  updateUser,
+  getUser,
+  uploadProfileImage,
+} from '~/utils/modules/user/service';
 import * as yup from 'yup';
 import { UpdateUserDto } from '~/utils/modules/user/dtos/update-user.dto';
 
@@ -20,6 +24,7 @@ const initials = computed(() => {
 // Server States.
 const error = ref<string>('');
 const loading = ref<boolean>(false);
+const imageLoading = ref<boolean>(false);
 const success = ref<boolean>(false);
 
 // Validation rules integration.
@@ -70,11 +75,32 @@ const submit = handleSubmit(async (values) => {
   loading.value = false;
 });
 
-const onFileChanged = ($event: Event) => {
+const onFileChanged = async ($event: Event) => {
   const target = $event.target as HTMLInputElement;
 
-  if (target && target.files) {
-    console.log(target.files);
+  if (target && target.files && target.files.length == 1) {
+    // Set all loading indicators back to their default states.
+    imageLoading.value = true;
+    success.value = false;
+    error.value = '';
+
+    // Update use profile on the server.
+    const { data: updateData, error: updateError } = await uploadProfileImage(
+      target.files[0]
+    );
+
+    // If error is empty, update global user state.
+    if (updateError?.isEmpty()) {
+      const serverUser = await getUser();
+      set(serverUser.data!);
+
+      success.value = true;
+    } else {
+      error.value = updateError!.message;
+    }
+
+    // Turn off loading.
+    imageLoading.value = false;
   }
 };
 </script>
@@ -89,27 +115,34 @@ const onFileChanged = ($event: Event) => {
         <v-avatar
           v-if="user?.account.image.imageLink != ''"
           :image="user?.account.image.imageLink"
-          size="40%"
+          size="150"
         />
 
-        <v-avatar v-if="user?.account.image.imageLink == ''" size="40%">
-          <span class="text-h5">{{ initials }}</span></v-avatar
+        <v-avatar
+          v-if="user?.account.image.imageLink == ''"
+          size="150"
+          color="surface-variant"
         >
-        <v-file-input
-          ref="uploadBtnRef"
-          label="File input"
-          class="d-none"
-          @change="onFileChanged($event)"
+          <span class="text-h2">{{ initials }}</span></v-avatar
+        >
+        <input
+          type="file"
           accept="image/*"
+          ref="uploadBtnRef"
+          class="d-none"
+          data-cy="img-upload"
           capture
+          @change="onFileChanged($event)"
         />
+
         <v-btn
           color="success"
           type="submit"
           data-cy="pic-btn"
           class="my-5"
+          :loading="imageLoading"
           @click="
-            () => {
+            async () => {
               uploadBtnRef.click();
             }
           "
@@ -145,6 +178,7 @@ const onFileChanged = ($event: Event) => {
           </v-container>
         </v-container>
         <v-alert
+          closable
           data-cy="error"
           v-if="error !== ''"
           color="error"
@@ -153,6 +187,7 @@ const onFileChanged = ($event: Event) => {
           :text="error"
         ></v-alert>
         <v-alert
+          closable
           data-cy="success"
           v-if="success"
           type="success"
