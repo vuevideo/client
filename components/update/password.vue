@@ -108,6 +108,7 @@ const submit = handleSubmit(async (values) => {
           </v-container>
         </v-container>
         <v-alert
+          closable
           data-cy="error"
           v-if="error !== ''"
           color="error"
@@ -116,6 +117,7 @@ const submit = handleSubmit(async (values) => {
           :text="error"
         ></v-alert>
         <v-alert
+          closable
           data-cy="success"
           v-if="success"
           type="success"

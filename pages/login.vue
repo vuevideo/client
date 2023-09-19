@@ -80,6 +80,7 @@ const submit = handleSubmit(async (values) => {
           </v-container>
         </v-container>
         <v-alert
+          closable
           data-cy="error"
           v-if="error !== ''"
           color="error"
