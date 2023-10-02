@@ -79,7 +79,9 @@ jobs:
       - name: Restore client dependencies
         uses: actions/cache/restore@v3
         with:
-          path: client/node_modules/**
+          path: |
+            client/node_modules/**
+            /home/runner/.cache/Cypress
           key: client-node-modules
 
       - name: Saving Testing Firebase Keys for client
@@ -132,7 +134,9 @@ jobs:
       - name: Caching client dependencies
         uses: actions/cache/save@v3
         with:
-          path: client/node_modules/**
+          path: |
+            client/node_modules/**
+            /home/runner/.cache/Cypress
           key: client-node-modules
 
   build_and_push:
