@@ -36,6 +36,7 @@ jobs:
             echo "Detected PR Close"
             ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PR_CLOSE_BRANCH_NAME }}`
           elif [[ "${{ env.EVENT }}" == "push" ]]
+          then
             echo "Detected Push"
             ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PUSH_BRANCH_NAME }}`
           fi
