@@ -42,3 +42,5 @@ jobs:
     with:
       trigger: client
       version: ${{ needs.tag_and_push.outputs.release_version }}
+    secrets:
+      VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
