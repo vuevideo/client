@@ -13,4 +13,3 @@ export const getApiMiddleware = (): any => {
 
   return createProxyMiddleware(options);
 };
-
