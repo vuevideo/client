@@ -39,7 +39,8 @@ jobs:
         working-directory: server
         run: |
           npm i
-          nohup npm run start:dev &
+          npm build
+          npm run start:migrate:prod
 
       - name: Check server status
         run: wget --spider http://localhost:3000/api/v1/hello
