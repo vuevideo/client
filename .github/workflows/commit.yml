@@ -42,7 +42,7 @@ jobs:
           nohup npm run start:dev &
 
       - name: Check server status
-        run: wget --spider http://127.0.0.1:3000/api/v1/hello
+        run: wget --spider http://localhost:3000/api/v1/hello
 
       # - name: Saving Testing Firebase Keys
       #   run: |
