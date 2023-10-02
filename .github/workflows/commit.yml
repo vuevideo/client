@@ -47,7 +47,7 @@ jobs:
         run: curl http://localhost:3000/api/v1/hello
 
       - name: Prepopulating the database
-        run: docker run --env "BACKEND_URL=http://host.docker.internal:3000" vuevideo/firebase_setup:latest
+        run: docker run --add-host host.docker.internal:host-gateway --env "BACKEND_URL=http://host.docker.internal:3000" vuevideo/firebase_setup:latest
 
       - name: Checking out the client repository
         uses: actions/checkout@v3
