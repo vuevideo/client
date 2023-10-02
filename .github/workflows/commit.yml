@@ -30,7 +30,7 @@ jobs:
           path: ./server
 
       - name: Saving Testing Firebase Keys for server
-        run: echo '${{ secrets.E2E_FIREBASE_KEY }}' >> ./server/keys/service-account.json
+        run: echo '${{ secrets.E2E_FIREBASE_KEY }}' >> server/keys/service-account.json
 
       - name: Starting server in background
         working-directory: ./server
