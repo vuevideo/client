@@ -27,11 +27,11 @@ jobs:
         run: |
           chmod +x ./.github/scripts/env.sh
 
-          if [[ "${{ env.EVENT }}" == "pull_request" && ${{ env.EVENT_ACTION }} == "open" ]]
+          if [[ "${{ env.EVENT }}" == "pull_request" && "${{ env.EVENT_ACTION }}" == "open" ]]
           then
             echo "Detected PR Open"
             ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PR_OPEN_BRANCH_NAME }}`
-          elif [[ "${{ env.EVENT }}" == "pull_request" && ${{ env.EVENT_ACTION }} == "close" ]]
+          elif [[ "${{ env.EVENT }}" == "pull_request" && "${{ env.EVENT_ACTION }}" == "close" ]]
           then
             echo "Detected PR Close"
             ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PR_CLOSE_BRANCH_NAME }}`
