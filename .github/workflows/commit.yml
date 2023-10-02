@@ -39,7 +39,7 @@ jobs:
         working-directory: server
         run: |
           npm i
-          npm build
+          npm run build
           npm run start:migrate:prod
 
       - name: Check server status
