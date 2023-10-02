@@ -46,38 +46,54 @@ jobs:
       - name: Check server status
         run: curl http://localhost:3000/api/v1/hello
 
-      # - name: Saving Testing Firebase Keys
-      #   run: |
-      #     mkdir keys
-      #     echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
+      - name: Prepopulating the database
+        run: docker run --env "BACKEND_URL=http://host.docker.internal:3000" vuevideo/firebase_setup:latest
 
-      #     echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> .env
+      - name: Checking out the client repository
+        uses: actions/checkout@v3
+        with:
+          path: client
 
-      # - name: Prepopulating the database
-      #   run: docker compose -f ./docker-compose.test.yml --profile prestart up --exit-code-from step_populate_user
+      - name: Saving Testing Firebase Keys for client
+        working-directory: client
+        run: |
+          echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> .env
 
-      # - name: Running E2E tests
-      #   run: docker compose -f ./docker-compose.test.yml --profile start up --exit-code-from vuevideo_e2e
+      - name: Preparig client for E2E tests
+        working-directory: client
+        run: |
+          npm i
+          npm run build
 
-      # - name: Reset Firebase Test Environment
-      #   if: always()
-      #   run: docker compose -f ./docker-compose.test.yml --profile poststart up
+      - name: Running E2E tests
+        uses: cypress-io/github-action@v6
+        env:
+          PORT: 3001
+        with:
+          component: true
+          start: node .output/server/index.mjs
+          working-directory: client
 
-      # - name: Cypress Screenshots
-      #   if: always()
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: cypress-screenshots
-      #     path: |
-      #       **/**.png
+      - name: Reset Firebase Test Environment
+        working-directory: server
+        if: always()
+        run: docker run --mount "type=bind,source=$(pwd)/keys,target=/secrets" vuevideo/firebase_reset:latest
 
-      # - name: Cypress Videos
-      #   if: always()
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: cypress-videos
-      #     path: |
-      #       **/**.mp4
+      - name: Cypress Screenshots
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: |
+            **/**.png
+
+      - name: Cypress Videos
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-videos
+          path: |
+            **/**.mp4
 
   # build_and_push:
   #   needs: test
