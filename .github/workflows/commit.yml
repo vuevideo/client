@@ -27,10 +27,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: vuevideo/server
-          path: ./server
+          path: server
 
       - name: Saving Testing Firebase Keys for server
-        run: echo '${{ secrets.E2E_FIREBASE_KEY }}' >> server/keys/service-account.json
+        run: |
+          ls -la
+          echo '${{ secrets.E2E_FIREBASE_KEY }}' >> server/keys/service-account.json
 
       - name: Starting server in background
         working-directory: ./server
