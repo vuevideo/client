@@ -1,0 +1,52 @@
+name: Fetch environment from branch name
+
+on:
+  workflow_call:
+    outputs:
+      environment:
+        description: Environment calculated from branch
+        value: ${{ jobs.fetch_environment.outputs.ENVIRONMENT_NAME }}
+
+jobs:
+  fetch_environment:
+    runs-on: ubuntu-latest
+    env:
+      PUSH_BRANCH_NAME: ${{ github.ref_name }}
+      PR_CLOSE_BRANCH_NAME: ${{ github.base_ref }}
+      PR_OPEN_BRANCH_NAME: ${{ github.head_ref }}
+      EVENT: ${{ github.event_name }}
+      EVENT_ACTION: ${{ github.event.action }}
+    outputs:
+      ENVIRONMENT_NAME: ${{ steps.environment.outputs.ENVIRONMENT_NAME }}
+    steps:
+      - name: Checking out the repository
+        uses: actions/checkout@v3
+
+      - id: environment
+        name: Fetch environment from branch name
+        run: |
+          chmod +x ./.github/scripts/env.sh
+
+          if [[ "${{ env.EVENT }}" == "pull_request" && "${{ env.EVENT_ACTION }}" == "open" ]]
+          then
+            echo "Detected PR Open"
+            ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PR_OPEN_BRANCH_NAME }}`
+          elif [[ "${{ env.EVENT }}" == "pull_request" && "${{ env.EVENT_ACTION }}" == "close" ]]
+          then
+            echo "Detected PR Close"
+            ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PR_CLOSE_BRANCH_NAME }}`
+          elif [[ "${{ env.EVENT }}" == "push" ]]
+          then
+            echo "Detected Push"
+            ENVIRONMENT_NAME=`bash ./.github/scripts/env.sh ${{ env.PUSH_BRANCH_NAME }}`
+          fi
+
+          if [[ $ENVIRONMENT_NAME == "" ]]
+          then
+            echo "Unknown event"
+            echo "Event: ${{ env.EVENT }}"
+            exit 1
+          else
+            echo "ENVIRONMENT_NAME=$ENVIRONMENT_NAME" >> $GITHUB_OUTPUT
+          fi
+

@@ -1,0 +1,172 @@
+name: Push development images to Docker Hub
+
+on:
+  push:
+    branches:
+      - feature/*/*
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+concurrency:
+  cancel-in-progress: true
+  group: client-test-build
+
+jobs:
+  env_name:
+    name: Fetch environment from branch name
+    uses: ./.github/workflows/fetch_environment.reusable.yml
+
+  e2e_test:
+    needs: env_name
+    name: Perform End to End tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - '5432:5432'
+          - '127.0.0.1:8888:5432'
+        env:
+          POSTGRES_USER: vuevideo_admin
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: vuevideo
+    steps:
+      - name: Setting up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 19.4.0
+
+      - name: Checking out the server repository
+        uses: actions/checkout@v3
+        with:
+          repository: vuevideo/server
+          path: server
+
+      - name: Restore server dependencies
+        uses: actions/cache/restore@v3
+        with:
+          path: server/node_modules/**
+          key: server-node-modules
+
+      - name: Saving Testing Firebase Keys for server
+        working-directory: server
+        run: |
+          mkdir keys
+          echo '${{ secrets.E2E_FIREBASE_KEY }}' >> keys/service-account.json
+
+      - name: Starting server in background
+        working-directory: server
+        run: |
+          npm i
+          npm run build
+          nohup npm run start:migrate:prod &
+          sleep 5
+
+      - name: Check server status
+        run: curl http://localhost:3000/api/v1/hello
+
+      - name: Prepopulating the database
+        run: docker run --add-host host.docker.internal:host-gateway --env "BACKEND_URL=http://host.docker.internal:3000" vuevideo/firebase_setup:latest
+
+      - name: Checking out the client repository
+        uses: actions/checkout@v3
+        with:
+          path: client
+
+      - name: Restore client dependencies
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            client/node_modules/**
+            /home/runner/.cache/Cypress
+          key: client-node-modules
+
+      - name: Saving Testing Firebase Keys for client
+        working-directory: client
+        run: |
+          echo "${{ secrets.E2E_FIREBASE_CONFIG }}" >> .env
+
+      - name: Preparing client for E2E tests
+        working-directory: client
+        run: |
+          npm i
+          npm run build
+
+      - name: Running E2E tests
+        uses: cypress-io/github-action@v6
+        env:
+          PORT: 3001
+        with:
+          start: node .output/server/index.mjs
+          working-directory: client
+          install: false
+
+      - name: Reset Firebase Test Environment
+        working-directory: server
+        if: always()
+        run: docker run --mount "type=bind,source=$(pwd)/keys,target=/secrets" vuevideo/firebase_reset:latest
+
+      - name: Cypress Screenshot Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Cypress Screenshot Artifacts
+          path: cypress/screenshots
+          if-no-files-found: ignore
+
+      - name: Cypress Video Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Cypress Video Artifacts
+          path: cypress/videos
+          if-no-files-found: ignore
+
+      - name: Caching server dependencies
+        uses: actions/cache/save@v3
+        with:
+          path: server/node_modules/**
+          key: server-node-modules
+
+      - name: Caching client dependencies
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            client/node_modules/**
+            /home/runner/.cache/Cypress
+          key: client-node-modules
+
+  build_and_push:
+    name: Build Client Image and push it to Docker Hub
+    needs: [e2e_test, env_name]
+    environment: ${{ needs.env_name.outputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      ENV_NAME: ${{ needs.env_name.outputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - id: image_name
+        name: Form proper Docker Image Name
+        run: |
+          DOCKER_TAG=$(echo ${{ vars.VERSION_PREFIX }}.${{ github.run_id }}.${{ env.ENV_NAME }})
+          DOCKER_IMAGE="${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/client"
+          DOCKER_IMAGE_VERSION="${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/client:$DOCKER_TAG"
+
+          echo "DOCKER_IMAGE=$DOCKER_IMAGE" >> $GITHUB_OUTPUT
+          echo "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ steps.image_name.outputs.DOCKER_IMAGE }} .
+          docker tag ${{ steps.image_name.outputs.DOCKER_IMAGE }} ${{ steps.image_name.outputs.DOCKER_IMAGE_VERSION }}
+
+      - name: Logging into Docker Registry
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Push into Docker Registry
+        run: docker image push --all-tags ${{ steps.image_name.outputs.DOCKER_IMAGE }}
