@@ -70,7 +70,6 @@ jobs:
         env:
           PORT: 3001
         with:
-          component: true
           start: node .output/server/index.mjs
           working-directory: client
 
